@@ -54,4 +54,9 @@ npm install
 npm start
 ```
 
-  
+### TODO
+- Throw exception trying removing an already removed task by throwing exception
+- Throw exception trying to mark already completed task as completed
+- Write resolver mutation for for unmarking an already completed task
+- Integrate unit and integration test cases
+- Integrate bootstrap to client UI
