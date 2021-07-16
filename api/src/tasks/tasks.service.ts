@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { CreateTaskInput } from './dto/create-task.input';
 import { MarkTaskAsCompleteInput } from './dto/mark-task-as-complete.input';
 import { RemoveTaskInput } from './dto/remove-task.input';
+import { EventsGateway } from './events/events.gateway';
 import { Task } from './task.model';
 
 @Injectable()
@@ -10,18 +11,21 @@ export class TasksService {
   constructor(
     @InjectModel(Task)
     private taskModel: typeof Task,
+    private eventGateWay: EventsGateway
   ) {}
 
   async findAll(): Promise<Task[]> {
     return this.taskModel.findAll();
   }
 
-  createTask(createTaskInput: CreateTaskInput): Promise<Task> {
+  async createTask(createTaskInput: CreateTaskInput): Promise<Task> {
     const task = new Task();
     task.title = createTaskInput.title;
     task.description = createTaskInput.description;
-
-    return task.save();
+    
+    const taskAdded = await task.save();
+    this.eventGateWay.server.emit('newTodoTaskAdded', taskAdded)
+    return taskAdded;
   }
 
   async markTaskAsComplete(
@@ -30,12 +34,14 @@ export class TasksService {
     const task = await this.findOneTask(markTaskAsComplete.taskId);
     task.isCompleted = true;
     await task.save();
+    this.eventGateWay.server.emit('todoTaskMarkAsCompleted', task)
     return task;
   }
 
   async removeTask(removeTaskData: RemoveTaskInput): Promise<Task> {
     const task = await this.findOneTask(removeTaskData.taskId);
     await task.destroy();
+    this.eventGateWay.server.emit('todoTaskRemoved', task)
     return task;
   }
 

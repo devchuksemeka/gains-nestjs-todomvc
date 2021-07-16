@@ -2,9 +2,7 @@ import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { join } from 'path';
-// import { join } from 'path/posix';
 import { TasksModule } from './tasks/tasks.module';
-
 @Module({
   imports: [
     SequelizeModule.forRoot({
@@ -19,6 +17,14 @@ import { TasksModule } from './tasks/tasks.module';
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      // cors: {
+      //   credentials: true,
+      //   origin: 'http://localhost:3000',
+      // },
+      cors: true,
+      context: ({req}) => {
+        return {req};
+      }
     }),
     TasksModule,
   ],

@@ -1,16 +1,34 @@
+import { Logger } from '@nestjs/common';
 import {
     MessageBody,
+    OnGatewayConnection,
+    OnGatewayDisconnect,
+    OnGatewayInit,
     SubscribeMessage,
     WebSocketGateway,
     WebSocketServer,
-    WsResponse,
   } from '@nestjs/websockets';
   import { Server } from 'socket.io';
-  
   @WebSocketGateway()
-  export class EventsGateway {
+  export class EventsGateway implements OnGatewayInit, OnGatewayConnection, 
+    OnGatewayDisconnect
+    {
+    private logger = new Logger('EventGateway')
+
     @WebSocketServer()
     server: Server;
+    afterInit(server: any) {
+      this.logger.log('Initialize Gateway');
+    }
+
+    handleConnection(client: any){
+      this.logger.log('New Client Connected')
+      client.emit('connection', 'Successfully connected to server')
+    }
+
+    handleDisconnect(client: any){
+      this.logger.log('Client Disconnected')
+    }
 
     @SubscribeMessage('createTask')
     createTask(@MessageBody() data: string): string {
